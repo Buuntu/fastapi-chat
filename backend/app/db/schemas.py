@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from enum import Enum
+import typing as t
 
 
 class UserBase(BaseModel):
@@ -17,6 +19,12 @@ class User(UserBase):
         orm_mode = True
 
 
+class MessageTypeEnum(str, Enum):
+    USER_CONNECTED = 'USER_CONNECTED'
+    USER_DISCONNECTED = 'USER_DISCONNECTED'
+    MESSAGE_SENT = 'MESSAGE_SENT'
+
+
 class WebSocketResponse(BaseModel):
-    type: str
-    data: str
+    type: MessageTypeEnum
+    data: t.Dict

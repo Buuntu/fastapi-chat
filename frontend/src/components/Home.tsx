@@ -18,11 +18,11 @@ const useStyles = makeStyles({
 
 const Home:FC = () => {
   const classes = useStyles();
-  const [roomNumber, setRoomNumber] = useState<string>('');
+  const [nickname, setNickname] = useState<string>('');
   const history = useHistory();
 
   const onClick = () => {
-    history.push(`room/${roomNumber}`);
+    history.push(`chat/${nickname}`);
   };
 
   return (
@@ -30,9 +30,9 @@ const Home:FC = () => {
       <Grid item xs={12}>
         <TextField
           className={classes.roomInput}
-          label="Room Number"
-          value={roomNumber}
-          onChange={(e) => setRoomNumber(e.currentTarget.value)}
+          label="Nickname"
+          value={nickname}
+          onChange={(e) => setNickname(e.currentTarget.value)}
           variant="filled"
         />
       </Grid>
@@ -42,7 +42,7 @@ const Home:FC = () => {
           className={classes.button}
           onClick={() => onClick()}
         >
-          Create
+          Join
         </Button>
       </Grid>
     </div>

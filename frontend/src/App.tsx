@@ -43,7 +43,7 @@ const App:FC = () => {
         style={{ minHeight: '100vh' }}
       >
         <Switch>
-          <Route path="/room/:roomName">
+          <Route path="/chat/:nickname">
             <Chat ws={ws} />
           </Route>
           <Route path="/">

@@ -3,6 +3,7 @@ import typing as t
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.websockets import WebSocket, WebSocketDisconnect
+import json
 
 from app.core import config
 from app.db.session import SessionLocal
@@ -50,7 +51,6 @@ class Notifier:
         self.connections: t.List[WebSocket] = []
         self.generator = self.get_notification_generator()
 
-
     async def get_notification_generator(self):
         while True:
             message = yield
@@ -64,7 +64,10 @@ class Notifier:
         self.connections.append(websocket)
         await self.push(WebSocketResponse(
             type='USER_CONNECTED',
-            data='user connected',
+            data={
+                'message': 'user connected',
+                'num_users': len(self.connections)
+            }
         ))
 
     async def remove(self, websocket: WebSocket):
@@ -73,7 +76,10 @@ class Notifier:
 
         await self.push(WebSocketResponse(
             type='USER_DISCONNECTED',
-            data='user disconnected',
+            data={
+                'message': 'user disconnected',
+                'num_users': len(self.connections)
+            }
         ))
 
     async def _notify(self, message: WebSocketResponse):
@@ -98,10 +104,17 @@ async def websocket_endpoint(
     try:
         while True:
             data = await websocket.receive_text()
-            await notifier.push(WebSocketResponse(
-                type='MESSAGE_SENT',
-                data=data,
-            ))
+            data_dict = json.loads(data)
+            if ('add_user' in data_dict):
+                await notifier.push(WebSocketResponse(
+                    type='USER_CONNECTED',
+                    data={'user': data_dict['add_user']}
+                ))
+            else:
+                await notifier.push(WebSocketResponse(
+                    type='MESSAGE_SENT',
+                    data={'message': data},
+                ))
     except WebSocketDisconnect:
         await notifier.remove(websocket)
 

@@ -1,0 +1,10 @@
+export enum MESSAGE_TYPES {
+  USER_CONNECTED = 'USER_CONNECTED',
+  USER_DISCONNECTED = 'USER_DISCONNECTED',
+  MESSAGE_SENT = 'MESSAGE_SENT'
+}
+
+export type Message = {
+  type: MESSAGE_TYPES,
+  data: object,
+};
