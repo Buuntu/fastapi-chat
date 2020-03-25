@@ -23,6 +23,7 @@ class MessageTypeEnum(str, Enum):
     USER_CONNECTED = 'USER_CONNECTED'
     USER_DISCONNECTED = 'USER_DISCONNECTED'
     MESSAGE_SENT = 'MESSAGE_SENT'
+    ERROR = 'ERROR'
 
 
 class WebSocketResponse(BaseModel):

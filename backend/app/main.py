@@ -3,7 +3,6 @@ import typing as t
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.websockets import WebSocket, WebSocketDisconnect
-import json
 
 from app.core import config
 from app.db.session import SessionLocal
@@ -55,8 +54,17 @@ class Notifier:
         await self.generator.asend(msg)
 
     async def connect(self, websocket: WebSocket, user_id: str):
+        if user_id in self.connections:
+            await self.push(WebSocketResponse(
+                type='ERROR',
+                data={
+                    'message': 'user is already registered',
+                    'user': user_id,
+                }
+            ))
         await websocket.accept()
         self.connections[user_id] = websocket
+
         await self.push(WebSocketResponse(
             type='USER_CONNECTED',
             data={
@@ -74,6 +82,7 @@ class Notifier:
                 type='USER_DISCONNECTED',
                 data={
                     'message': 'user disconnected',
+                    'user': user_id,
                     'num_users': len(self.connections)
                 }
             ))
@@ -99,15 +108,13 @@ async def websocket_endpoint(
     websocket: WebSocket,
     user_id: str = 'guest',
 ):
-    print(user_id)
     await notifier.connect(websocket, user_id)
     try:
         while True:
-            data = await websocket.receive_text()
-            data_dict = json.loads(data)
+            data = await websocket.receive_json()
             await notifier.push(WebSocketResponse(
                 type='MESSAGE_SENT',
-                data=data_dict,
+                data=data,
             ))
     except WebSocketDisconnect:
         await notifier.remove(websocket, user_id)

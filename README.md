@@ -1,5 +1,7 @@
 # fastapi-chat
 
+An example chat application using FastAPI and WebSockets
+
 ## Features
 - **FastAPI** with Python 3.8
 - **React 16** with Typescript, Redux, and react-router
@@ -99,31 +101,4 @@ docker-compose logs
 Or for a specific service:
 ```
 docker-compose logs -f name_of_service # frontend|backend|db
-```
-
-## Project Layout
-```
-backend
-└── app
-    ├── alembic
-    │   └── versions # where migrations are located
-    ├── api
-    │   └── api_v1
-    │       └── endpoints
-    ├── core    # config
-    ├── db      # db models
-    ├── tests   # pytest
-    └── main.py # entrypoint to backend
-
-frontend
-└── public
-└── src
-    ├── components
-    │   └── Home.tsx
-    ├── config
-    │   └── index.tsx   # constants
-    ├── __tests__
-    │   └── test_home.tsx
-    ├── index.tsx   # entrypoint
-    └── App.tsx     # handles routing
 ```

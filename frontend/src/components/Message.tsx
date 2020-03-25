@@ -26,7 +26,7 @@ type MessageProps = {
   type: MESSAGE_TYPES,
   data: {
     message?: string,
-    num_users?: string,
+    num_users?: number,
     user?: string,
   },
 };
@@ -45,12 +45,28 @@ const Message: FC<MessageProps> = ({ type, data }) => {
       );
       break;
     case MESSAGE_TYPES.USER_CONNECTED:
+      content = (
+        <div className={classes.connectOrDisconnect}>
+          User <strong>{data.user}</strong> connected. 
+          {data.num_users && data.num_users > 1 && (
+            <span>
+              There are {data.num_users} participants
+            </span>
+          )}
+        </div>
+      );
+      break;
     case MESSAGE_TYPES.USER_DISCONNECTED:
       content = (
         <div className={classes.connectOrDisconnect}>
-          User <strong>{data.user}</strong> connected. There are {data.num_users} participants
+          User <strong>{data.user}</strong> disconnected. 
+          {data.num_users && data.num_users > 1 && (
+            <span>
+              There are {data.num_users} participants
+            </span>
+          )}
         </div>
-      )
+      );
       break;
     default:
       content = data.message;

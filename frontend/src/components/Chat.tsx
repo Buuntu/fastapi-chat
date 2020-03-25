@@ -57,6 +57,7 @@ const Chat: FC = () => {
     setWebsocket(
       new WebSocket(`ws://${BASE_BACKEND_DOMAIN}/ws?user_id=${nickname}`),
     );
+
     return () => {
       if (ws) {
         ws.close();
