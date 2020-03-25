@@ -14,13 +14,20 @@ const useStyles = makeStyles({
   connectOrDisconnect: {
     color: 'gray',
   },
+  user: {
+    fontWeight: 'bold',
+    display: 'inline',
+    marginRight: '10px',
+    marginLeft: '3px',
+  },
 });
 
 type MessageProps = {
   type: MESSAGE_TYPES,
   data: {
     message?: string,
-    num_users?: string
+    num_users?: string,
+    user?: string,
   },
 };
 
@@ -32,7 +39,7 @@ const Message: FC<MessageProps> = ({ type, data }) => {
     case MESSAGE_TYPES.MESSAGE_SENT:
       content = (
         <div className={classes.messageSent}>
-          <AccountCircle />
+          <AccountCircle /><div className={classes.user}>{data.user}</div>
           {data.message}
         </div>
       );
@@ -41,7 +48,7 @@ const Message: FC<MessageProps> = ({ type, data }) => {
     case MESSAGE_TYPES.USER_DISCONNECTED:
       content = (
         <div className={classes.connectOrDisconnect}>
-          {data.message}. There are {data.num_users} participants
+          User <strong>{data.user}</strong> connected. There are {data.num_users} participants
         </div>
       )
       break;

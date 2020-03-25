@@ -8,7 +8,6 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Home from './components/Home';
 import Chat from './components/Chat';
-import { BASE_BACKEND_DOMAIN } from './config';
 
 
 import './App.css';
@@ -30,8 +29,6 @@ const useStyles = makeStyles({
 const App:FC = () => {
   const styles = useStyles();
 
-  const ws = new WebSocket(`ws://${BASE_BACKEND_DOMAIN}/ws`);
-
   return (
     <div className={styles.root}>
       <Grid
@@ -44,7 +41,7 @@ const App:FC = () => {
       >
         <Switch>
           <Route path="/chat/:nickname">
-            <Chat ws={ws} />
+            <Chat />
           </Route>
           <Route path="/">
             <Home />

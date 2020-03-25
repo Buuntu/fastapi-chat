@@ -41,14 +41,9 @@ async def db_session_middleware(request: Request, call_next):
     return response
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
 class Notifier:
     def __init__(self):
-        self.connections: t.List[WebSocket] = []
+        self.connections: t.Dict[str, WebSocket] = {}
         self.generator = self.get_notification_generator()
 
     async def get_notification_generator(self):
@@ -59,37 +54,40 @@ class Notifier:
     async def push(self, msg: WebSocketResponse):
         await self.generator.asend(msg)
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
-        self.connections.append(websocket)
+        self.connections[user_id] = websocket
         await self.push(WebSocketResponse(
             type='USER_CONNECTED',
             data={
-                'message': 'user connected',
+                'message': f'user connected',
+                'user': user_id,
                 'num_users': len(self.connections)
             }
         ))
 
-    async def remove(self, websocket: WebSocket):
-        if (websocket in self.connections):
-            self.connections.remove(websocket)
+    async def remove(self, websocket: WebSocket, user_id: str):
+        if (user_id in self.connections):
+            self.connections.pop(user_id)
 
-        await self.push(WebSocketResponse(
-            type='USER_DISCONNECTED',
-            data={
-                'message': 'user disconnected',
-                'num_users': len(self.connections)
-            }
-        ))
+            await self.push(WebSocketResponse(
+                type='USER_DISCONNECTED',
+                data={
+                    'message': 'user disconnected',
+                    'num_users': len(self.connections)
+                }
+            ))
 
     async def _notify(self, message: WebSocketResponse):
-        living_connections = []
-        while len(self.connections) > 0:
+        living_connections = {}
+        keys = list(self.connections)
+        for user in keys:
+            print(user)
             # Looping like this is necessary in case a disconnection is handled
             # during await websocket.send_text(message)
-            websocket = self.connections.pop()
+            websocket = self.connections.pop(user)
             await websocket.send_json(message.dict())
-            living_connections.append(websocket)
+            living_connections[user] = websocket
         self.connections = living_connections
 
 
@@ -99,24 +97,20 @@ notifier = Notifier()
 @app.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
+    user_id: str = 'guest',
 ):
-    await notifier.connect(websocket)
+    print(user_id)
+    await notifier.connect(websocket, user_id)
     try:
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data)
-            if ('add_user' in data_dict):
-                await notifier.push(WebSocketResponse(
-                    type='USER_CONNECTED',
-                    data={'user': data_dict['add_user']}
-                ))
-            else:
-                await notifier.push(WebSocketResponse(
-                    type='MESSAGE_SENT',
-                    data={'message': data},
-                ))
+            await notifier.push(WebSocketResponse(
+                type='MESSAGE_SENT',
+                data=data_dict,
+            ))
     except WebSocketDisconnect:
-        await notifier.remove(websocket)
+        await notifier.remove(websocket, user_id)
 
 
 @app.on_event("startup")

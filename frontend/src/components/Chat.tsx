@@ -6,6 +6,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useParams } from 'react-router-dom';
 import Message from './Message';
 import { Message as MessageType } from '../types';
+import { BASE_BACKEND_DOMAIN } from '../config';
+
 
 const useStyles = makeStyles({
   chatBox: {
@@ -39,56 +41,60 @@ const useStyles = makeStyles({
   },
 });
 
-interface ChatProps {
-  ws: WebSocket,
-}
 
 const scrollToRef = (ref: any) => window.scrollTo(0, ref.current.offsetTop);
 
-const Chat: FC<ChatProps> = ({ ws }) => {
+const Chat: FC = () => {
   const classes = useStyles();
   const { nickname } = useParams();
   const [text, setText] = useState<string>('');
+  const [ws, setWebsocket] = useState<WebSocket | null>(null);
+
   const [messages, setMessages] = useState<MessageType[]>([]);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
+    setWebsocket(
+      new WebSocket(`ws://${BASE_BACKEND_DOMAIN}/ws?user_id=${nickname}`),
+    );
     return () => {
-      ws.close();
+      if (ws) {
+        ws.close();
+      }
     };
   }, []);
+
+  if (ws) {
+    ws.onopen = () => {
+      // on connecting, do nothing but log it to the console
+      console.log('connected');
+    };
+
+    ws.onclose = () => {
+      console.log('disconnected');
+      // automatically try to reconnect on connection loss
+    };
+
+    ws.onmessage = (event: any) => {
+      // listen to data sent from the websocket server
+      const response = JSON.parse(event.data);
+      setMessages([...messages, response]);
+      // scrollToBottom();
+      console.log(response);
+    };
+  }
 
   const scrollToBottom = () => {
     scrollToRef(messagesEnd);
   };
 
-  ws.onopen = () => {
-    // on connecting, do nothing but log it to the console
-    console.log('connected');
-    ws.send(JSON.stringify(
-      { add_user: nickname },
-    ));
-  };
-
-  ws.onmessage = (event: any) => {
-    // listen to data sent from the websocket server
-    const response = JSON.parse(event.data);
-    setMessages([...messages, response]);
-    // scrollToBottom();
-    console.log(response);
-  };
-
-  ws.onclose = () => {
-    console.log('disconnected');
-    // automatically try to reconnect on connection loss
-  };
-
   const onSubmit = () => {
     try {
-      ws.send(JSON.stringify(
-        { user: nickname, message: text },
-      )); // send data to the server
+      if (ws) {
+        ws.send(JSON.stringify(
+          { user: nickname, message: text },
+        )); // send data to the server
+      }
     } catch (error) {
       console.log(error); // catch error
     }
