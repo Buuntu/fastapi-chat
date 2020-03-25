@@ -1,0 +1,45 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data:cached
+
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8888
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./backend/:/app/:cached
+      - ./.docker/.ipython:/root/.ipython:cached
+    environment:
+      PYTHONPATH: .
+      DATABASE_URL: 'postgresql://postgres:password@db/postgres'
+      FRONTEND_SERVER_URL: 'http://localhost:8000'
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    volumes:
+      - './frontend:/app:cached'
+      - type: volume
+        target: /app/node_modules
+        consistency: cached
+      - '/frontend/node_modules'
+    ports:
+      - '8000:3000'
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  db-data:
