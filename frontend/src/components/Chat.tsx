@@ -5,8 +5,9 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import { useParams } from 'react-router-dom';
 import Message from './Message';
-import { Message as MessageType } from '../types';
+import { Message as MessageType, MESSAGE_TYPES } from '../types';
 import { BASE_BACKEND_DOMAIN } from '../config';
+import { startTyping, stopTyping, sendMessage } from '../utils';
 
 
 const useStyles = makeStyles({
@@ -49,6 +50,8 @@ const Chat: FC = () => {
   const { nickname } = useParams();
   const [text, setText] = useState<string>('');
   const [ws, setWebsocket] = useState<WebSocket | null>(null);
+  const [timeout, setTimeoutFunc] = useState<any>(null);
+  const [users, setUsers] = useState<string[]>([]);
 
   const [messages, setMessages] = useState<MessageType[]>([]);
   const messagesEnd = useRef<HTMLDivElement>(null);
@@ -79,7 +82,26 @@ const Chat: FC = () => {
     ws.onmessage = (event: any) => {
       // listen to data sent from the websocket server
       const response = JSON.parse(event.data);
-      setMessages([...messages, response]);
+      switch (response.type) {
+        case MESSAGE_TYPES.MESSAGE_SENT:
+        case MESSAGE_TYPES.USER_CONNECTED:
+        case MESSAGE_TYPES.USER_DISCONNECTED:
+          setMessages([...messages, response]);
+          break;
+        case MESSAGE_TYPES.USER_TYPING:
+          if (!users.includes(response.data.user) &&
+            response.data.user !== nickname) {
+            setUsers([...users, response.data.user]);
+          }
+          break;
+        case MESSAGE_TYPES.USER_STOPPED_TYPING:
+          if (users.includes(response.data.user)) {
+            setUsers(users.filter((user) => user !== response.data.user));
+          }
+          break;
+        default:
+          break;
+      }
       // scrollToBottom();
       console.log(response);
     };
@@ -89,12 +111,26 @@ const Chat: FC = () => {
     scrollToRef(messagesEnd);
   };
 
+  const onChange = (e: any) => {
+    clearTimeout(timeout);
+
+    if (ws && nickname) {
+      startTyping(ws, nickname);
+
+      // Make a new timeout set to go off in 1000ms (1 second)
+      setTimeoutFunc(setTimeout(() => {
+        stopTyping(ws, nickname);
+      }, 1000));
+    }
+
+    setText(e.currentTarget.value);
+  };
+
   const onSubmit = () => {
     try {
-      if (ws) {
-        ws.send(JSON.stringify(
-          { user: nickname, message: text },
-        )); // send data to the server
+      if (ws && nickname) {
+        sendMessage(ws, nickname, text);
+        stopTyping(ws, nickname);
       }
     } catch (error) {
       console.log(error); // catch error
@@ -124,6 +160,13 @@ const Chat: FC = () => {
                 style={{ float: 'left', clear: 'both' }}
                 ref={messagesEnd}
               />
+              <Grid item xs={12}>
+                {users.length > 0 && (
+                  <span>
+                    {users.join(',')} is typing...
+                  </span>
+                )}
+              </Grid>
             </Grid>
             <Grid item xs={12} className={classes.messageField}>
               <TextField
@@ -131,7 +174,7 @@ const Chat: FC = () => {
                 label="Enter Message"
                 variant="outlined"
                 value={text}
-                onChange={(e) => setText(e.currentTarget.value)}
+                onChange={onChange}
                 onKeyDown={handleKeyPress}
                 InputProps={{
                   classes: {

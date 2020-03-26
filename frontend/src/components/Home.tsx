@@ -5,8 +5,6 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 
-import { BACKEND_URL } from '../config';
-
 const useStyles = makeStyles({
   root: {
     height: '120px',
@@ -30,6 +28,12 @@ const Home:FC = () => {
     history.push(`chat/${nickname}`);
   };
 
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter') {
+      onClick();
+    }
+  };
+
   return (
     <div>
       <Typography variant="h3">Chat Room</Typography>
@@ -40,6 +44,7 @@ const Home:FC = () => {
             label="Nickname"
             value={nickname}
             onChange={(e) => setNickname(e.currentTarget.value)}
+            onKeyDown={handleKeyPress}
             variant="filled"
           />
         </Grid>

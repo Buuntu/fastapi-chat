@@ -1,10 +1,27 @@
 from fastapi.testclient import TestClient
-from app.main import app
+from app.db.schemas import MessageTypeEnum, WebSocketResponse
 
-client = TestClient(app)
+from starlette.websockets import WebSocket
 
 
-def test_read_main():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "Hello World"}
+async def app(scope, receive, send):
+    assert scope['type'] == 'websocket'
+    websocket = WebSocket(scope, receive=receive, send=send)
+    await websocket.accept()
+    await websocket.send_json(WebSocketResponse(
+        type=MessageTypeEnum.MESSAGE_SENT,
+        data={
+            'user': 'guest',
+            'message': 'Hello World!',
+        }
+    ).dict())
+    await websocket.close()
+
+
+def test_websocket_message():
+    client = TestClient(app)
+    with client.websocket_connect("/ws") as websocket:
+        response = websocket.receive_json()
+        assert response
+        assert response['type'] == MessageTypeEnum.MESSAGE_SENT
+        assert response['data']['message'] == 'Hello World!'
