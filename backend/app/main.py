@@ -1,11 +1,11 @@
 from fastapi import FastAPI
+import uvicorn
 import typing as t
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from app.core import config
-from app.db.session import SessionLocal
 from app.db.schemas import WebSocketResponse, MessageTypeEnum
 
 
@@ -31,13 +31,6 @@ if config.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     ),
 
-
-@app.middleware("http")
-async def db_session_middleware(request: Request, call_next):
-    request.state.db = SessionLocal()
-    response = await call_next(request)
-    request.state.db.close()
-    return response
 
 
 class Notifier:
@@ -132,3 +125,8 @@ async def websocket_endpoint(
 async def startup():
     # Prime the push notification generator
     await notifier.generator.asend(None)
+
+
+# For debugging
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8888)

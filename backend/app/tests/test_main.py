@@ -20,6 +20,7 @@ async def app(scope, receive, send):
 
 def test_websocket_message():
     client = TestClient(app)
+
     with client.websocket_connect("/ws") as websocket:
         response = websocket.receive_json()
         assert response
