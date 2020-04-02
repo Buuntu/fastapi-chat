@@ -3,7 +3,6 @@ import { AccountCircle } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core';
 import { MESSAGE_TYPES } from '../types';
 
-
 const useStyles = makeStyles({
   root: {
     textAlign: 'left',
@@ -23,12 +22,12 @@ const useStyles = makeStyles({
 });
 
 type MessageProps = {
-  type: MESSAGE_TYPES,
+  type: MESSAGE_TYPES;
   data: {
-    message?: string,
-    num_users?: number,
-    user?: string,
-  },
+    message?: string;
+    num_users?: number;
+    user?: string;
+  };
 };
 
 const Message: FC<MessageProps> = ({ type, data }) => {
@@ -39,7 +38,8 @@ const Message: FC<MessageProps> = ({ type, data }) => {
     case MESSAGE_TYPES.MESSAGE_SENT:
       content = (
         <div className={classes.messageSent}>
-          <AccountCircle /><div className={classes.user}>{data.user}</div>
+          <AccountCircle />
+          <div className={classes.user}>{data.user}</div>
           {data.message}
         </div>
       );
@@ -47,11 +47,9 @@ const Message: FC<MessageProps> = ({ type, data }) => {
     case MESSAGE_TYPES.USER_CONNECTED:
       content = (
         <div className={classes.connectOrDisconnect}>
-          User <strong>{data.user}</strong> connected. 
+          User <strong>{data.user}</strong> connected.
           {data.num_users && data.num_users > 1 && (
-            <span>
-              There are {data.num_users} participants
-            </span>
+            <span>There are {data.num_users} participants</span>
           )}
         </div>
       );
@@ -59,11 +57,9 @@ const Message: FC<MessageProps> = ({ type, data }) => {
     case MESSAGE_TYPES.USER_DISCONNECTED:
       content = (
         <div className={classes.connectOrDisconnect}>
-          User <strong>{data.user}</strong> disconnected. 
+          User <strong>{data.user}</strong> disconnected.
           {data.num_users && data.num_users > 1 && (
-            <span>
-              There are {data.num_users} participants
-            </span>
+            <span>There are {data.num_users} participants</span>
           )}
         </div>
       );
@@ -72,11 +68,7 @@ const Message: FC<MessageProps> = ({ type, data }) => {
       content = data.message;
       break;
   }
-  return (
-    <div className={classes.root}>
-      {content}
-    </div>
-  );
+  return <div className={classes.root}>{content}</div>;
 };
 
 export default Message;

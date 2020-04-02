@@ -1,7 +1,5 @@
 import React, { FC, useState } from 'react';
-import {
-  Button, TextField, Grid, Paper, Typography,
-} from '@material-ui/core';
+import { Button, TextField, Grid, Paper, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 
@@ -19,7 +17,7 @@ const useStyles = makeStyles({
   },
 });
 
-const Home:FC = () => {
+const Home: FC = () => {
   const classes = useStyles();
   const [nickname, setNickname] = useState<string>('');
   const history = useHistory();

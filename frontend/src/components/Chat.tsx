@@ -1,14 +1,11 @@
 import React, { FC, useState, useEffect, useRef } from 'react';
-import {
-  Typography, Grid, Paper, TextField, Button,
-} from '@material-ui/core';
+import { Typography, Grid, Paper, TextField, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useParams } from 'react-router-dom';
 import Message from './Message';
 import { Message as MessageType, MESSAGE_TYPES } from '../types';
 import { BASE_BACKEND_DOMAIN } from '../config';
 import { startTyping, stopTyping, sendMessage } from '../utils';
-
 
 const useStyles = makeStyles({
   chatBox: {
@@ -42,9 +39,6 @@ const useStyles = makeStyles({
   },
 });
 
-
-const scrollToRef = (ref: any) => window.scrollTo(0, ref.current.offsetTop);
-
 const Chat: FC = () => {
   const classes = useStyles();
   const { nickname } = useParams();
@@ -58,7 +52,7 @@ const Chat: FC = () => {
 
   useEffect(() => {
     setWebsocket(
-      new WebSocket(`ws://${BASE_BACKEND_DOMAIN}/ws?user_id=${nickname}`),
+      new WebSocket(`ws://${BASE_BACKEND_DOMAIN}/ws?user_id=${nickname}`)
     );
 
     return () => {
@@ -89,8 +83,10 @@ const Chat: FC = () => {
           setMessages([...messages, response]);
           break;
         case MESSAGE_TYPES.USER_TYPING:
-          if (!users.includes(response.data.user) &&
-            response.data.user !== nickname) {
+          if (
+            !users.includes(response.data.user) &&
+            response.data.user !== nickname
+          ) {
             setUsers([...users, response.data.user]);
           }
           break;
@@ -107,10 +103,6 @@ const Chat: FC = () => {
     };
   }
 
-  const scrollToBottom = () => {
-    scrollToRef(messagesEnd);
-  };
-
   const onChange = (e: any) => {
     clearTimeout(timeout);
 
@@ -118,9 +110,11 @@ const Chat: FC = () => {
       startTyping(ws, nickname);
 
       // Make a new timeout set to go off in 1000ms (1 second)
-      setTimeoutFunc(setTimeout(() => {
-        stopTyping(ws, nickname);
-      }, 1000));
+      setTimeoutFunc(
+        setTimeout(() => {
+          stopTyping(ws, nickname);
+        }, 1000)
+      );
     }
 
     setText(e.currentTarget.value);
@@ -153,18 +147,14 @@ const Chat: FC = () => {
         <Paper elevation={7} className={classes.chatBox}>
           <Grid container>
             <Grid item xs={12} className={classes.messages}>
-              {messages && messages.map((message) => (
-                <Message type={message.type} data={message.data} />
-              ))}
-              <div
-                style={{ float: 'left', clear: 'both' }}
-                ref={messagesEnd}
-              />
+              {messages &&
+                messages.map((message) => (
+                  <Message type={message.type} data={message.data} />
+                ))}
+              <div style={{ float: 'left', clear: 'both' }} ref={messagesEnd} />
               <Grid item xs={12}>
                 {users.length > 0 && (
-                  <span>
-                    {users.join(',')} is typing...
-                  </span>
+                  <span>{users.join(',')} is typing...</span>
                 )}
               </Grid>
             </Grid>

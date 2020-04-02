@@ -1,14 +1,10 @@
 import React, { FC } from 'react';
-import {
-  Switch,
-  Route,
-} from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import { Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Home from './components/Home';
 import Chat from './components/Chat';
-
 
 import './App.css';
 
@@ -26,7 +22,7 @@ const useStyles = makeStyles({
   },
 });
 
-const App:FC = () => {
+const App: FC = () => {
   const styles = useStyles();
 
   return (
